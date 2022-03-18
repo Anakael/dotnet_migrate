@@ -33,9 +33,9 @@ def update_project_file(project_file: Path):
         tf_tag = tf_tags[0]
 
         tf_tag.text = "net6.0"
-        language_version_tag = child.find("LanguageVersion")
+        language_version_tag = child.find("LangVersion")
         if not language_version_tag:
-            language_version_tag = ElementTree.Element("LanguageVersion")
+            language_version_tag = ElementTree.Element("LangVersion")
             child.append(language_version_tag)
 
         language_version_tag.text = "10.0"
