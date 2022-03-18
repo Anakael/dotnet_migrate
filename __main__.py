@@ -62,6 +62,7 @@ def update_project_files(project_file: Path):
 
             update_cs_file(Path(root)/ file, usings)
 
+    print(f"writing globals usings: {project_file.parent / 'GlobalUsings.cs'}")
     with (project_file.parent / "GlobalUsings.cs").open("w") as file_obj:
         usings_text = ""
         usings = list(usings)
@@ -78,20 +79,21 @@ def update_cs_file(file: Path, project_usings: Set):
         indent = re.findall(INDENT_REGEX, text)
         if not indent:
             print(f"{file} is unsupported")
+            return
         indent = indent[0][0]
         local_usings = re.findall(USING_REGEX, text)
         if local_usings:
             project_usings |= set(local_usings)
 
-        text = re.sub(NAMESPACE_WITH_BODY_REGEX, rf"namespace \g<NamespaceName>;{os.linesep}\g<Body>", text)
+        text = re.sub(NAMESPACE_WITH_BODY_REGEX, rf"namespace \g<NamespaceName>;\n\g<Body>", text)
         text = re.sub(USING_REGEX, "", text)
         text = re.sub(EMPTY_LINES_REGEX, r"\2", text)
         
-        lines = text.split(os.linesep)
+        lines = text.split("\n")
         for i, line in enumerate(lines):
             lines[i] = line.removeprefix(indent)
 
-        text = os.linesep.join(lines)
+        text = "\n".join(lines)
 
     with file.open("w") as file_obj:
         file_obj.write(text)
@@ -101,6 +103,9 @@ def main(solution_path: Path):
     projects = parse_solution(solution_path)
     print(projects)
     for project in projects:
+        if not project.exists():
+            print(f"Skip {project}")
+            continue
         update_project_file(project)
         update_project_files(project)
 
