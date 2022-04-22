@@ -68,7 +68,7 @@ def update_project_files(project_file: Path):
         usings = list(usings)
         usings.sort()
         for using in usings:
-            usings_text += f"global using {using};{os.linesep}"
+            usings_text += f"global using {using};\n"
         file_obj.write(usings_text)
 
 
