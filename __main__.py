@@ -34,6 +34,9 @@ def update_project_file(project_file: Path):
 
         tf_tag.text = "net6.0"
         language_version_tag = child.find("LangVersion")
+        if language_version_tag is None:
+            language_version_tag = ElementTree.Element("LangVersion")
+            child.append(language_version_tag)
         language_version_tag.text = "10.0"
 
         implicit_usings_tag = ElementTree.Element("ImplicitUsings")
@@ -46,10 +49,14 @@ def update_project_file(project_file: Path):
     tree.write(project_file)
 
 
-def update_project_files(project_file: Path):
+def update_project_files(project_file: Path, ignore: List[Path]):
     usings = set()
     for root, _, files in os.walk(project_file.parent):
         if f"{os.sep}obj" in root or f"{os.sep}bin" in root:
+            continue
+
+        if any([str(x) in root for x in ignore]):
+            print(f"Skip {root} as ignored")
             continue
 
         for file in files:
@@ -95,17 +102,21 @@ def update_cs_file(file: Path, project_usings: Set):
         file_obj.write(text)
 
 
-def main(solution_path: Path):
+def main(solution_path: Path, ignore: List[Path]):
     projects = parse_solution(solution_path)
-    print(projects)
+    print(f"{[str(x) for x in projects]}")
     for project in projects:
-        if not project.exists():
-            print(f"Skip {project}")
+        project_str = str(project)
+        if not project.exists() or any([str(x) in project_str for x in ignore]):
+            print(f"Skip {project} as ignored or non-existent")
             continue
         update_project_file(project)
-        update_project_files(project)
+        update_project_files(project, ignore)
 
 
 if __name__ == "__main__":
     solution_path = Path(argv[1])
-    main(solution_path)
+    ignore = []
+    if len(argv) > 2:
+        ignore = [Path(x) for x in argv[2:]]
+    main(solution_path, ignore)
