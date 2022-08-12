@@ -77,7 +77,7 @@ def update_project_files(project_file: Path, ignore: List[Path]):
 
 def update_cs_file(file: Path, project_usings: Set):
     text = ""
-    with file.open() as file_obj:
+    with file.open(encoding="utf-8") as file_obj:
         text = file_obj.read()
         indent = re.findall(INDENT_REGEX, text)
         if not indent:
@@ -98,7 +98,7 @@ def update_cs_file(file: Path, project_usings: Set):
 
         text = "\n".join(lines)
 
-    with file.open("w") as file_obj:
+    with file.open("w", encoding="utf-8") as file_obj:
         file_obj.write(text)
 
 
